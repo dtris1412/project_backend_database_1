@@ -1,7 +1,11 @@
 const { render, name } = require("ejs");
 const conection = require("../config/database");
 const { route } = require("../routes/web");
-const { getAllUsers, getUserById } = require("../services/CRUDservices");
+const {
+  getAllUsers,
+  getUserById,
+  updateUserById,
+} = require("../services/CRUDservices");
 const getHomepage = async (req, res) => {
   let results = await getAllUsers();
   return res.render("home.ejs", { listUsers: results });
@@ -16,11 +20,30 @@ const getCreatePage = (req, res) => {
 const getUpdatePage = async (req, res) => {
   const userId = req.params.userId;
   let user = await getUserById(userId);
-
+  // console.log("check result>>>", results);
   console.log(">>>request.param", req.params, userId);
   res.render("edit.ejs", { userEdit: user });
 };
+const postUpdateUser = async (req, res) => {
+  let email = req.body.email;
+  let name = req.body.myName;
+  let city = req.body.city;
+  let userId = req.body.userId;
+  console.log(
+    "email = ",
+    email,
+    "name = ",
+    name,
+    "city = ",
+    city,
+    "userId: ",
+    userId
+  );
+  await updateUserById(email, name, city, userId);
 
+  // res.send("updated");
+  res.redirect("/");
+};
 const postCreateUser = async (req, res) => {
   let email = req.body.email;
   let name = req.body.myName;
@@ -37,11 +60,14 @@ const postCreateUser = async (req, res) => {
   //     res.send("create user successed");
   //   }
   // );
-  let [results, fields] = await conection.execute(
-    `INSERT INTO Users(email, name, city) VALUES(?,?,?)`,
-    [email, name, city]
-  );
-  console.log("check result: ", result);
+  let [results, fields] = await conection
+    .promise()
+    .query(`INSERT INTO Users(email, name, city) VALUES(?,?,?)`, [
+      email,
+      name,
+      city,
+    ]);
+  console.log("check result: ", results);
   res.send("create user succeed");
 };
 
@@ -51,4 +77,5 @@ module.exports = {
   postCreateUser,
   getCreatePage,
   getUpdatePage,
+  postUpdateUser,
 };
