@@ -1,7 +1,7 @@
 const { render, name } = require("ejs");
 const conection = require("../config/database");
 const { route } = require("../routes/web");
-const { getAllUsers } = require("../services/CRUDservices");
+const { getAllUsers, getUserById } = require("../services/CRUDservices");
 const getHomepage = async (req, res) => {
   let results = await getAllUsers();
   return res.render("home.ejs", { listUsers: results });
@@ -15,14 +15,12 @@ const getCreatePage = (req, res) => {
 };
 const getUpdatePage = async (req, res) => {
   const userId = req.params.userId;
-  let [results, fields] = await conection
-    .promise()
-    .execute("select* from Users where id = ?", [userId]);
-  let user = results && results.length > 0 ? results[0] : {};
-  console.log("check result>>>", results);
+  let user = await getUserById(userId);
+
   console.log(">>>request.param", req.params, userId);
   res.render("edit.ejs", { userEdit: user });
 };
+
 const postCreateUser = async (req, res) => {
   let email = req.body.email;
   let name = req.body.myName;
